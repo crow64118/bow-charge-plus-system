@@ -1,12 +1,15 @@
 # Brief B — rebuild the stealth AC in PUNCH_COMBAT, exact copy
 
-Prerequisites, all in this repo before you paste:
+Prerequisites before you paste:
 
-- `docs/stealth/SPEC/` exists (output of Brief A).
-- BLANKS.md rows L1–L5 and P1–P7 are filled. Where an L-value is UNREADABLE, decide it
-  yourself in the editor first — the rebuild cannot start with an unknown default.
+- `docs/stealth/SPEC/` exists (output of Brief A), on the PUNCH_COMBAT machine or pasted
+  into the session on request.
+- The five local defaults L1–L5 are known (from `SPEC/LOCALS.md`, or read by hand). Where
+  one is UNREADABLE, decide it yourself in the editor first — the rebuild cannot start with
+  an unknown default. Fill the five `«L…»` slots in step 4 and 5.
 
-Fill the `«…»` slots from BLANKS.md, then paste everything between the rules.
+Everything else the brief discovers itself in its recon step and asks you to confirm. No
+other slots to fill. Paste everything between the rules.
 
 ---
 
@@ -32,20 +35,25 @@ The stealth system is a **sibling ActorComponent** on the player character, next
 existing PunchCombat AC. It does not go inside PunchCombat. PunchCombat is not modified in
 this brief.
 
-## Recon before build
+## Recon before build — discover the facts, then wait
 
-Read and report, change nothing:
+Read and report, change nothing. Fill this table and print it back to me:
 
-1. Confirm `«P1: player character Blueprint»` exists, its parent class, its component list,
-   and that `«P2: PunchCombat AC»` is on it.
-2. Confirm the mesh's skeleton and that socket/bone `«P4: head socket»` exists on it.
-3. Confirm crouch: does the character call `Crouch` / `UnCrouch` on the movement component,
-   from which Input Action? Is `Can Crouch` ticked on the CharacterMovement nav-agent props?
-4. Does `/Game/STEALTH_SYSTEM/` or any asset named like the spec already exist here? If yes,
-   STOP and report — do not overwrite.
-5. `git status` of the project. If there is no repo, say so; step 0 makes one.
+| Key | Fact | How to find it |
+|---|---|---|
+| PLAYER | the player character Blueprint | the GameMode's Default Pawn Class in the project's default map, or the character carrying the PunchCombat component |
+| COMBAT | the PunchCombat ActorComponent class name | search Blueprints for a class whose name contains `Punch` or `Combat` and whose parent is ActorComponent; it's attached to PLAYER |
+| ENGINE | engine version | `.uproject` EngineAssociation |
+| HEAD | head socket or bone name on PLAYER's skeleton | Manny/Quinn skeletons have a bone `head`; report every socket whose name contains `head` |
+| CROUCH | how crouch is wired | does PLAYER call `Crouch` / `UnCrouch`? from which Input Action? Started/Completed or toggle? Is `Can Crouch` ticked on CharacterMovement > Nav Movement? If there is no crouch, say NONE |
+| MAP | the map you'll test in | the project's default editor map; if it's a menu or empty, the map PLAYER's GameMode is set on |
+| GIT | is the project a git repo | `git status` in the project root |
+| CLASH | does `/Game/STEALTH_SYSTEM/` or any asset named like the spec already exist here | Content Browser search |
 
-Report, then wait for my go.
+If CLASH is yes: STOP after reporting — do not overwrite. If CROUCH is NONE: STOP after
+reporting — I'll decide, don't add one. Otherwise print the table and **wait for my go**.
+Everywhere below, `PLAYER`, `COMBAT`, `HEAD`, `MAP` mean the values in your table. If I
+correct one, use mine.
 
 ## Step 0 — baseline
 
@@ -78,7 +86,7 @@ One at a time, each compiled and committed before the next.
   overlap. Rebuild the graphs node-for-node from the spec dump.
 - `BP_LIGHT_EMITTER`: empty graphs, components per spec: PointLight 5000 unitless /
   attenuation 1000 / colour (0, 1, 0.435) / shadows on / z 55; `LIGHT DETECT` sphere radius
-  32, scale (85.6, 30, 30), tag `«G2: tag»`, query only, overlaps Pawn only; bulb and pole
+  32, scale (85.6, 30, 30), tag the tag string in the spec (G2), query only, overlaps Pawn only; bulb and pole
   ignore Visibility. Every collision response per channel exactly as spec — the sphere's
   odd scale and the Visibility-ignore are load-bearing, don't normalise them.
 
@@ -88,7 +96,7 @@ Commit each: `stealth: BP_STEALTH_ACTOR`, `stealth: BP_BUSH`, `stealth: BP_LIGHT
 
 ActorComponent. Build in this order, compiling after each:
 
-1. Variables with defaults per spec. `Character` is typed **`«P1»`** (design call 1).
+1. Variables with defaults per spec. `Character` is typed **PLAYER** (design call 1).
 2. Functions, empty shells first with inputs/outputs/locals, so cross-references resolve.
    Local defaults: `loacal_MIN RAY DISTANCE = «L1»`, `local GRID SIZE HALF = «L2»`,
    `local GRID CELL DISTANCE = «L3»`, `HAS A ROOF = «L4»`.
@@ -98,7 +106,7 @@ ActorComponent. Build in this order, compiling after each:
    The BeginPlay light scan keeps its Set-vs-Add exactly as the spec shows.
 4. Event graph: BeginPlay sun discovery (tag `SUN`, print strings included), the 0.5 s
    looping timer calling `SCAN`, the capsule overlap begin/end handlers.
-5. The head-socket name on the ROOF ABOVE start node is `«P4»` (design call 2).
+5. The head-socket name on the ROOF ABOVE start node is HEAD (design call 2).
 
 Array writes land one element per call through this tooling — verify every array default
 element by element after writing. Impure functions with no exec input get pruned — check
@@ -111,7 +119,7 @@ Commit: `stealth: BP_DARKNESS_DETECTION`.
 ActorComponent. Same order:
 
 1. Variables per spec: `CURRENT STEALTH FACTOR` 1.0, `IS CROUCHING` false, the rest per
-   spec. `Character` typed `«P1»`. `ANIM INSTANCE` is created but left unassigned and unread
+   spec. `Character` typed PLAYER. `ANIM INSTANCE` is created but left unassigned and unread
    (design call 3) — keep the variable so the graphs match.
 2. `GET MAX STEALTH FACTOR` with `local_CURRENT MAX FACTOR = «L5»`; `CAN CROUCH?`;
    `START CROUCH`; `STOP CROUCH`; `calculate current stealth factor` — all node for node,
@@ -125,7 +133,7 @@ Commit: `stealth: BPC_STEALTH_SYSTEM`.
 
 ## Step 6 — attach to the character
 
-On `«P1»`:
+On PLAYER:
 
 1. Add `BP_DARKNESS_DETECTION` and `BPC_STEALTH_SYSTEM` as components. Leave PunchCombat
    untouched.
@@ -138,11 +146,11 @@ On `«P1»`:
    character has no crouch at all, STOP and tell me — I'll decide, don't add one.
 4. Compile the character. Log must show no Accessed None on load.
 
-Commit: `stealth: attached to «P1»`.
+Commit: `stealth: attached to PLAYER`.
 
 ## Step 7 — test scene
 
-In `«P7: test map»`, without saving over anything I have open:
+In MAP, without saving over anything I have open:
 
 - A `BP_LIGHT_EMITTER` at a spot on the floor with clear sky.
 - A `BP_BUSH` about 400 units away.
@@ -156,9 +164,9 @@ Commit: `stealth: test scene`.
 
 ## Design calls — don't reinterpret
 
-1. `Character` is typed as `«P1»`, assigned from the character's BeginPlay. No cast to any
+1. `Character` is typed as PLAYER, assigned from the character's BeginPlay. No cast to any
    AAMS class anywhere.
-2. The roof start uses socket/bone `«P4»`.
+2. The roof start uses socket/bone HEAD.
 3. `ANIM INSTANCE` stays as a dead variable. Do not wire it.
 4. The TextRender debug is a Print String. No new widget, no new actor.
 5. Crouch is driven by the character's input events calling START/STOP CROUCH. The engine
@@ -171,7 +179,7 @@ Everything else is the spec, verbatim.
 
 Observable outcomes, not steps:
 
-- All new assets compile clean; the output log after loading `«P7»` is free of
+- All new assets compile clean; the output log after loading `MAP` is free of
   `Accessed None`, `Failed to find function` and `Cast failed`.
 - With the character standing in the open under the sun: `STEALTH` print reads `1.0`.
 - Crouched in the open: the print drops to `0.9` or below within one second.
