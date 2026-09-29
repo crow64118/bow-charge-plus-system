@@ -160,3 +160,27 @@ Accessed None.
 - Then the bug pass: `02_BRIEF_B_REBUILD.md` → "Bug pass (B2)". Bug 2 first; it's the one
   you'll feel.
 - Then `03_NPC_FACTION.md`.
+
+---
+
+## Rulings after the first recon attempt (29 Sep, bridge was down)
+
+Facts the agent established from disk, now part of the brief:
+
+- Project `PUNCH_COMBAT`, default map `/Game/PUNCH_COMBAT/Maps/TESTMAP`, GameMode
+  `BP_ThirdPersonGameMode`, **no git repo** (step 0 applies).
+- `BP_DARKNESS_DETECTION` lives at `/Game/STEALTH_SYSTEM/DARKNESS_DETECTION/`.
+- `STEALTH_HIDER` is nested: `/Game/STEALTH_SYSTEM/STEALTH_HIDER/`. No top-level folder.
+- **The PunchCombat AC is `/Game/STEALTH_SYSTEM/PUNCH_COMBAT/BPC_PUNCH_COMBAT`** and it is
+  also broken: null `EnhancedInputAction` (wants `IA_ATTACK` from a missing
+  `/Game/COMBAT_COMP/`) and a bad cast to `BP_PlayerControllerAAMS`. **Out of scope for D.**
+  Gets its own session (Brief E) after stealth compiles. D only reports whether it blocks
+  the player from compiling.
+- `CHARACTER` on both components is already `BP_ThirdPersonCharacter` (done by hand). The
+  remaining errors are the two "Bad cast node"s (to the AAMS MotionMatching character and
+  to `BP_P0Character`) and the missing `TextRender` variable — i.e. fix categories 1 and 2.
+- `K2Node_FunctionEntry.LocalVariables` is **not readable through the inspector** (logged
+  "could not be read"). Python via `execute_unreal_python` is the next attempt; the
+  snippet is in `tools/ue_dump_bp_locals.py`. Agent output files go under `Saved/`.
+- The bridge dies when a second Aura Chat window opens. Fix: `Aura.Server.Restart` in the
+  editor console; close extra Aura windows.
