@@ -25,6 +25,7 @@ input.
 | fallback | [01_BRIEF_A_EXTRACT.md](01_BRIEF_A_EXTRACT.md) / [01b](01b_BRIEF_A_AURA.md) then [02_BRIEF_B_REBUILD.md](02_BRIEF_B_REBUILD.md) | FREESMOKE_001 → PUNCH_COMBAT | Only if D finds the migrated copy unrepairable |
 | B2 | [02_BRIEF_B_REBUILD.md](02_BRIEF_B_REBUILD.md) §Bug pass | PUNCH_COMBAT | Bugs 2, 5–9 fixed, one commit each |
 | C | [03_NPC_FACTION.md](03_NPC_FACTION.md) | PUNCH_COMBAT | `BP_NPC_Base`, faction table, perception that reads the stealth factor |
+| **A** | [05_PHASE_A_CLOSE_OUT.md](05_PHASE_A_CLOSE_OUT.md) | **PUNCH_COMBAT — current** | Bushes block AI sight (`AISight` channel), R2c lighting deletions, perception hysteresis. Then stealth is CLOSED and Phase B (combat) may start |
 
 [BLANKS.md](BLANKS.md) is the short list of things only you can answer; `data/` holds the faction table ready to import; [LOG.md](LOG.md) is the session log. Fill it as you go; every
 brief marks where a blank is consumed.
